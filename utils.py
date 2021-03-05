@@ -1,3 +1,7 @@
+
+
+ilixiangyou
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFXxUXTiAPKeyeiEj+5CC+yFJIwT5VgwrX2EqBiUByAi5i7NTy35NGY3gpklWWYu3UXSoVc9Xla+/Ieuqlpj4UcKXvU2fNhIHucnLAAhS0tbRF/m+fD/H7NBasO8VmQ4CO3TbPCcke8Ekgr+yDqHUnWsxKOI3+aa6L+4hjddmy+XwoKU1/VXzB9KRwXePESpt4x7kGGWsMDw7TUjbvkGyOcu6YOcfq8T3gF+uHEKwHqpjyS7U1vYuB7tfx7Wh+SQyesg/solLxAFD6vGPvkvBet4WIzkzkG8UscnAUQBOfsCHSxPhutvGAyPVDXTPLG3AxFi2xXuqAUreuZ9MCFBl9 liheyou@zhiyitech.cn
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras import backend as K
@@ -9,7 +13,6 @@ def _point_scale2img(points, _H, _W):
         points -> [..., 2]
     """
     # with tf.variable_scope("_point_scale2img", reuse=False):
-    print(points, _H, _W)
     points = points * tf.constant([_H - 1, _W - 1], "float32")
     return points
 
@@ -22,8 +25,14 @@ def _uncertainty(logits, cls):
     # logits
     # logits = (logits-tf.reduce_min(logits))/\
     #          (tf.reduce_max(logits)-tf.reduce_min(logits))*2-1
-    logits = tf.nn.sigmoid(logits)
-    gt_class_logits = logits[..., cls:cls + 1] - 0.8
+    
+#     if cls!=1:
+#         logits = tf.softmax(logits, axis=-1, keepdims=True)    
+#     else:
+#         logits = tf.sigmoid(logits, axis=-1, keepdims=True)    
+#     logits = K.max(logits, axis=-1, keepdims=True) 
+#     logits = logits - 0.8
+    gt_class_logits = logits[..., :1] - 0.8
     return -tf.abs(gt_class_logits)
 
 
@@ -36,6 +45,8 @@ def _grid_nd_sample(in_tensor, indices, batch_dims=1):
         batch_dims: number of batch dimensions
     """
     # with tf.variable_scope("grid_nd_sample", reuse=False):
+    if len(in_tensor.shape)>4:
+        in_tensor = int_tensor[..., 0]
     interpolation_indices = indices[..., -2:]
     rounded_indices = indices[..., :-2]
     inter_floor = tf.floor(interpolation_indices)
